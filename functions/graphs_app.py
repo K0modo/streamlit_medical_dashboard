@@ -109,7 +109,6 @@ def member_indicator(c_member, p_member):
 
 
 def make_icd_spec_heatmap(table):
-
     fig_table = get_icd_spec_pivot(table)
 
     fig = px.imshow(
@@ -147,28 +146,34 @@ def get_icd_spec_pivot(table):
     group_icd = table.groupby('icd_name', as_index=False)['charge_allowed'].count().nlargest(10, 'charge_allowed')
     icd_list = group_icd['icd_name'].to_list()
     table = table[table['icd_name'].isin(icd_list)]
-    group_spec = table.groupby('specialty_name', as_index=False)['charge_allowed'].count().nlargest(10, 'charge_allowed')
+    group_spec = table.groupby('specialty_name', as_index=False)['charge_allowed'].count().nlargest(10,
+                                                                                                    'charge_allowed')
     spec_list = group_spec['specialty_name'].to_list()
     table = table[table['specialty_name'].isin(spec_list)]
-    table = table.pivot_table(index='icd_name', columns='specialty_name', values='charge_allowed', aggfunc='count', fill_value=0)
+    table = table.pivot_table(index='icd_name', columns='specialty_name', values='charge_allowed', aggfunc='count',
+                              fill_value=0)
 
     return table
 
 
 def make_profit_impact_bar(table):
-    fig = px.bar(table,
-                 x='P&L Impact',
-                 orientation='h',
-                 )
+    fig = go.Figure()
+    fig.add_trace(
+        go.Bar(name='P&L',
+               x=table['P&L Impact'],
+               y=table.index,
+               marker_color=table['Color'],
+               orientation='h',
+               ))
     fig.update_layout(
         title=dict(
             text='Profit & Loss',
-            y=1.0,
+            y=0.88,
             x=0.5,
             yanchor='top',
             xanchor='center'
         ),
-        # title_font=title_font,
+        xaxis_tickprefix='$ ',
     )
     fig.update_yaxes(autorange='reversed')
 
@@ -282,7 +287,7 @@ def make_icd_racing_chart(table, table_title):
                                                   {'frame': {'duration': 1000, 'redraw': True},
                                                    'transition': {'duration': 250, 'easing': 'linear'}
                                                    }
-                                                  ]
+                                                  ],
                                             ),
                                        ],
                               x=.9,

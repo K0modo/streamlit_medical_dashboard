@@ -245,7 +245,7 @@ st.markdown("<h3 style='text-align: center;'>Summary of Charges</h3>", unsafe_al
 
 ### SUMMARY OF CHARGES CHART & TABLE
 
-col = st.columns((4.5, 0.5, 1, 0.5))
+col = st.columns((4.5, 0.5, 1.5, 0.5))
 
 with col[0]:
     st.markdown('')

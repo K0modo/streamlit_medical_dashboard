@@ -1,4 +1,5 @@
-import data_settings as ds
+import functions.data_settings as ds
+import numpy as np
 
 
 class CorporateTables:
@@ -9,6 +10,7 @@ class CorporateTables:
         self.table['budget_charges'] = self.table['day_count'] * ds.AVG_PER_DAY
         self.table['Charges Variance'] = self.table['claims_period_paid'] - self.table['budget_charges']
         self.table['P&L Impact'] = round(self.table['Charges Variance'] * ds.WRAP_RATE, 0)
+        self.table['Color'] = np.where(self.table['P&L Impact']<0,'#DE2C62', '#0083B8')
         self.table.set_index('period', inplace=True)
         self.table.index.names = ['Period']
         self.table.drop(['day_count', 'claims_period_paid', 'budget_charges'], axis=1, inplace=True)
