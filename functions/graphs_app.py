@@ -168,14 +168,21 @@ def make_profit_impact_bar(table):
     fig.update_layout(
         title=dict(
             text='Profit & Loss',
-            y=0.88,
+            font={'size': 24},
+            y=0.97,
             x=0.5,
             yanchor='top',
-            xanchor='center'
+            xanchor='center',
         ),
         xaxis_tickprefix='$ ',
     )
-    fig.update_yaxes(autorange='reversed')
+    fig.update_yaxes(autorange='reversed',
+                     title='Period'),
+    fig.update_xaxes(range=[-750000, 300000],
+                     # ticklabelstep=250000,
+                     ticks='outside',
+                     tickcolor='white',
+                     )
 
     return fig
 

@@ -106,24 +106,25 @@ st.markdown("")
 st.markdown("")
 
 ###  RACING CHARTS
-st.markdown("<h3 style='text-align: center;'>Claims Processed Top 10</h3>", unsafe_allow_html=True)
-col = st.columns((4, 4))
 
-with col[0]:
-    table_title = 'Injury_Disease'
-    icd_racing_table = conn.query("Select name, period, claim_count_ytd from v_icd_racing")
-    icd_racing_chart = graphs.make_icd_racing_chart(icd_racing_table, table_title)
-    st.plotly_chart(icd_racing_chart, use_container_width=True)
+with st.expander("TOP 10 CLAIMS PROCESSED"):
 
-with col[1]:
-    table_title = 'Provider Specialty'
-    specialty_racing_table = conn.query(
-        "Select name, period, claim_count_ytd from v_specialty_racing where "
-        "name != 'Hospital_Clinic'")
-    specialty_racing_chart = graphs.make_icd_racing_chart(specialty_racing_table, table_title)
-    st.plotly_chart(specialty_racing_chart, use_container_width=True)
+    col = st.columns((4, 0.5, 4))
 
-st.markdown("")
+    with col[0]:
+        table_title = 'Injury_Disease'
+        icd_racing_table = conn.query("Select name, period, claim_count_ytd from v_icd_racing")
+        icd_racing_chart = graphs.make_icd_racing_chart(icd_racing_table, table_title)
+        st.plotly_chart(icd_racing_chart, use_container_width=True)
+
+    with col[2]:
+        table_title = 'Provider Specialty'
+        specialty_racing_table = conn.query(
+            "Select name, period, claim_count_ytd from v_specialty_racing where "
+            "name != 'Hospital_Clinic'")
+        specialty_racing_chart = graphs.make_icd_racing_chart(specialty_racing_table, table_title)
+        st.plotly_chart(specialty_racing_chart, use_container_width=True)
+
 st.markdown("")
 
 ### ICD Table
@@ -182,6 +183,8 @@ with st.expander("ICD TABLE"):
                      },
                      hide_index=True)
 
+st.markdown("")
+
 ### SPECIALTY Table
 
 with st.expander("PROVIDER SPECIALTY TABLE"):
@@ -231,6 +234,8 @@ with st.expander("PROVIDER SPECIALTY TABLE"):
                      },
                      hide_index=True)
 
+st.markdown("")
+
 with st.expander("HEATMAP"):
     col = st.columns([1, 7, 1])
 
@@ -241,11 +246,11 @@ with st.expander("HEATMAP"):
 
 st.markdown("")
 st.markdown("")
-st.markdown("<h3 style='text-align: center;'>Summary of Charges</h3>", unsafe_allow_html=True)
+
 
 ### SUMMARY OF CHARGES CHART & TABLE
-
-col = st.columns((4.5, 0.5, 1.5, 0.5))
+st.markdown("<h3 style='text-align: center;'>Annual Budget Variance Summary</h3>", unsafe_allow_html=True)
+col = st.columns((4, 1, 3, .5))
 
 with col[0]:
     st.markdown('')
