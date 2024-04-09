@@ -1,8 +1,8 @@
 import streamlit as st
-from functions.data_app_calculations import CorporateTables, ClaimData
+from functions.data_app_calculations import CorporateTables, ClaimData, ICDData
 from functions import graphs_app as graphs
+import functions.data_settings as ds
 
-# MOVE TO MODEL FILE
 st.set_page_config(
     page_title="Tynan Member Dashboard",
     page_icon=':bar_chart:',
@@ -28,28 +28,52 @@ st.markdown("""
 
 conn = st.connection('db_tynan', type='sql')
 
-avg_per_day = 130000
-reserve_rate = 0.07
-overhead_rate = 0.11
-admin_rate = 0.1
-profit_rate = .07
-wrap_rate = round((((1 + overhead_rate) * (1 + admin_rate)) * (1 + profit_rate) - 1), 2)
-period_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
 ### Title Row
 st.markdown("<h2 style='text-align: center;'>Tynan Analytics Dashboard</h2>", unsafe_allow_html=True)
 
+### SUMMARY OF CHARGES CHART & TABLE
+st.markdown("")
+st.markdown("<h3 style='text-align: center;'>Annual Budget Variance Summary</h3>", unsafe_allow_html=True)
+st.markdown("")
+
+col = st.columns((4, 1, 3, .5))
+
+with col[0]:
+    query_1 = conn.query("Select * from v_period_summary")
+    corporate_tables = CorporateTables(query_1)
+
+    variance_table = corporate_tables.make_period_budget_table()
+    variance_chart = graphs.make_bar_chart_period(variance_table)
+    st.plotly_chart(variance_chart, use_container_width=True)
+
+with col[2]:
+    st.markdown(" ")
+    st.markdown(" ")
+
+    charge_impact_table = corporate_tables.make_charge_impact_table()
+    charge_impact_chart = graphs.make_profit_impact_bar(charge_impact_table)
+    st.plotly_chart(charge_impact_chart, use_container_width=True)
+
+
 ###  Statistics Rows
+st.markdown("")
+col = st.columns((1, 1, 1))
+
+with col[1]:
+    st.subheader("Summary of Claims")
+
 col = st.columns(8)
 
 with col[0]:
-    select_period = st.selectbox("Select Period:", period_list)
+    select_period = st.selectbox("Select Period:", ds.PERIOD_LIST)
 
 col = st.columns((2, 2, 2, 2, 2))
 
 with col[0]:
     annual_stats = conn.query("Select * from v_period_summary")
-    annual_data = ClaimData(annual_stats)
+
+    annual_data = ClaimData(annual_stats, ds.CURRENT_PERIOD)
     p_claims = annual_data.get_select_claims(select_period)
     p_paid = annual_data.get_select_paid(select_period)
     p_average = p_paid / p_claims
@@ -134,7 +158,8 @@ with st.expander("ICD TABLE"):
 
     with col[1]:
         query = conn.query("""
-            Select period, injury_disease_id, t_injury_disease.name as icd_name, specialty_id, t_specialty.name as specialty_name, 
+            Select period, mem_acct_id, injury_disease_id, t_injury_disease.name as icd_name, specialty_id, 
+            t_specialty.name as specialty_name, 
                     charge_allowed from v_consolidated_codes as vcc
             inner join t_injury_disease
             on vcc.injury_disease_id = t_injury_disease.id
@@ -245,30 +270,52 @@ with st.expander("HEATMAP"):
         st.plotly_chart(heatmap_chart, use_container_width=True)
 
 st.markdown("")
-st.markdown("")
 
+with st.expander("ICD SELECTION"):
 
-### SUMMARY OF CHARGES CHART & TABLE
-st.markdown("<h3 style='text-align: center;'>Annual Budget Variance Summary</h3>", unsafe_allow_html=True)
-col = st.columns((4, 1, 3, .5))
+    query_df = query.copy()
+    icd_options = query_df['icd_name'].drop_duplicates().sort_values()
 
-with col[0]:
-    st.markdown('')
-    st.markdown('')
-    df_period_table = conn.query("Select period,  claims_period_paid, day_count from v_period_summary")
-    budget_table = df_period_table.copy()
-    budget_table = CorporateTables(budget_table)
-    budget_table = budget_table.make_period_budget_table()
-    budget_chart = graphs.make_bar_chart_period(budget_table)
-    st.plotly_chart(budget_chart, use_container_width=True)
+    col = st.columns(5)
 
-with col[2]:
-    st.markdown(" ")
-    st.markdown(" ")
-    st.markdown(" ")
-    st.markdown(" ")
-    charge_impact_table = df_period_table.copy()
-    charge_impact_table = CorporateTables(charge_impact_table)
-    charge_impact_table = charge_impact_table.make_charge_impact_table()
-    charge_impact_chart = graphs.make_profit_impact_bar(charge_impact_table)
-    st.plotly_chart(charge_impact_chart, use_container_width=True)
+    with col[0]:
+        choice = st.selectbox('Select an Injury or Disease', icd_options)
+        st.markdown("")
+
+        icd_stats = ICDData(query_df, choice)
+
+    col = st.columns((2, 2, 2, 2, 2))
+
+    with col[0]:
+        st.markdown("Selection")
+        st.markdown(choice)
+
+    with col[1]:
+        st.markdown("Claims Processed")
+        st.markdown(f'{icd_stats.claims:,}')
+
+    with col[2]:
+        st.markdown("Claim Charges")
+        st.markdown(f'$ {icd_stats.charges:,.0f}')
+
+    with col[3]:
+        st.markdown("Average Charges")
+        st.markdown(f'$ {icd_stats.average:,.2f}')
+
+    with col[4]:
+        st.markdown("Members")
+        st.markdown(f'{icd_stats.get_member_count()}')
+
+    st.markdown("")
+
+    col = st.columns((3, 1, 4))
+
+    with col[0]:
+        icd_choices = icd_stats.get_period_claim_count()
+        fig = graphs.make_icd_period_bar_chart(icd_choices, choice)
+        st.plotly_chart(fig, use_container_width=True)
+
+    with col[2]:
+        choice_from_icd_choice = icd_stats.get_specialty_claims()
+        fig = graphs.make_icd_specialty_bar_chart(choice_from_icd_choice, choice)
+        st.plotly_chart(fig, use_container_width=True)

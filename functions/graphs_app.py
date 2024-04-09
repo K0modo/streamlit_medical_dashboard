@@ -13,7 +13,11 @@ def make_bar_chart_period(table):
         data=[
             go.Bar(name='Actual Charges', x=periods, y=table['claims_period_paid'], yaxis='y', offsetgroup=1),
             go.Bar(name='Budget Charges', x=periods, y=table['charge_budget'], yaxis='y', offsetgroup=2),
-            go.Line(name='Cumulative Variance', x=periods, y=table['cum_charge_variance'], yaxis='y2'),
+            go.Line(name='Cumulative Variance', x=periods, y=table['cum_charge_variance'],
+                    yaxis='y2',
+                    marker=dict(size=10),
+                    line=dict(color='#DE2C62', width=4)
+                    ),
         ],
         layout={
             'yaxis2': {'title': "Cumulative Variance", 'overlaying': 'y', 'side': 'right'},
@@ -40,6 +44,36 @@ def make_bar_chart_period(table):
             x=0.5
         )
     )
+
+    return fig
+
+
+def make_profit_impact_bar(table):
+    fig = go.Figure()
+    fig.add_trace(
+        go.Bar(name='P&L',
+               x=table['P&L Impact'],
+               y=table.index,
+               marker_color=table['Color'],
+               orientation='h',
+               ))
+    fig.update_layout(
+        title=dict(
+            text='Profit & Loss',
+            font={'size': 24},
+            y=0.97,
+            x=0.5,
+            yanchor='top',
+            xanchor='center',
+        ),
+        xaxis=yaxis_currency,
+    )
+    fig.update_yaxes(title='Period',
+                     autorange='reversed',),
+    fig.update_xaxes(
+                     ticks='outside',
+                     tickcolor='white',
+                     )
 
     return fig
 
@@ -156,37 +190,6 @@ def get_icd_spec_pivot(table):
     return table
 
 
-def make_profit_impact_bar(table):
-    fig = go.Figure()
-    fig.add_trace(
-        go.Bar(name='P&L',
-               x=table['P&L Impact'],
-               y=table.index,
-               marker_color=table['Color'],
-               orientation='h',
-               ))
-    fig.update_layout(
-        title=dict(
-            text='Profit & Loss',
-            font={'size': 24},
-            y=0.97,
-            x=0.5,
-            yanchor='top',
-            xanchor='center',
-        ),
-        xaxis_tickprefix='$ ',
-    )
-    fig.update_yaxes(autorange='reversed',
-                     title='Period'),
-    fig.update_xaxes(range=[-750000, 300000],
-                     # ticklabelstep=250000,
-                     ticks='outside',
-                     tickcolor='white',
-                     )
-
-    return fig
-
-
 def make_hospital_icd_pie(hospital_table):
     hospital_table = hospital_table.groupby('ICD', as_index=False)['charge_allowed'].sum().sort_values(
         by='charge_allowed', ascending=False)
@@ -299,7 +302,8 @@ def make_icd_racing_chart(table, table_title):
                                        ],
                               x=.9,
                               y=0.2,
-                              font={'color': '#000000'}
+                              font={'color': '#000000'},
+
                               )
                          ]
         ),
@@ -330,5 +334,46 @@ def make_icd_racing_chart(table, table_title):
             for key, value in n_frame.items()
         ]
     )
+
+    return fig
+
+
+def make_icd_period_bar_chart(table, choice):
+    fig = go.Figure(
+        data=[
+            go.Bar(name='Claims', x=table['period'], y=table['charge_allowed'])
+        ]
+    )
+    fig.update_layout(
+        title=dict(
+            text=f"Claims Processed for {choice}",
+            x=0.5,
+            xanchor='center',
+            font={'size': 19}
+        ),
+    )
+    fig.update_xaxes(
+        dtick=2
+    )
+
+    return fig
+
+
+def make_icd_specialty_bar_chart(table, choice):
+    fig = go.Figure(
+        data=[
+            go.Bar(name='Claims', x=table['charge_allowed'], y=table['specialty_name'], orientation='h')
+        ]
+    )
+    fig.update_layout(
+        title=dict(
+            text=f"Specialty Claims Processed for {choice}",
+            x=0.5,
+            xanchor='center',
+            font={'size': 19}
+        ),
+        xaxis=yaxis_comma
+    )
+    fig.update_yaxes(autorange='reversed')
 
     return fig
