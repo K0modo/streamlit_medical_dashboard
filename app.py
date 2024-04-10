@@ -250,6 +250,8 @@ with st.expander("ICD TABLE (Sort Columns)"):
         st.dataframe(query_final,
                      column_config={
                          'icd_name': "Injury or Disease",
+                         'Average': st.column_config.NumberColumn(format="%.2f"),
+
                          'icd_chart_data': st.column_config.BarChartColumn(
                              "Prior Periods",
                              y_min=0,
@@ -273,6 +275,7 @@ with st.expander("PROVIDER SPECIALTY TABLE (Sort Columns)"):
         st.dataframe(query_final,
                      column_config={
                          'specialty_name': "Provider Specialty",
+                         'Average': st.column_config.NumberColumn(format="%.2f"),
                          'specialty_chart_data': st.column_config.BarChartColumn(
                              "Prior Periods",
                              y_min=0,
