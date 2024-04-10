@@ -28,22 +28,105 @@ class CorporateTables:
 class ClaimData:
     def __init__(self, dataframe, current_period):
         self.table = dataframe
-        self.a_claims = dataframe.loc[current_period-1, 'claims_period_count_cum']
-        self.a_paid = dataframe.loc[current_period-1, 'claims_period_paid_cum']
+        self.a_claims = dataframe.loc[current_period - 1, 'claims_period_count_cum']
+        self.a_paid = dataframe.loc[current_period - 1, 'claims_period_paid_cum']
         self.a_ave_per_claim = self.a_paid / self.a_claims
-        self.c_claims = dataframe.loc[current_period-1, 'claims_period_count']
-        self.c_paid = dataframe.loc[current_period-1, 'claims_period_paid']
+        self.c_claims = dataframe.loc[current_period - 1, 'claims_period_count']
+        self.c_paid = dataframe.loc[current_period - 1, 'claims_period_paid']
         self.c_ave_per_claim = self.c_paid / self.c_claims
 
     def get_select_claims(self, period):
-        p_claims = self.table.loc[period, 'claims_period_count']
+        p_claims = self.table.loc[period - 1, 'claims_period_count']
 
         return p_claims
 
     def get_select_paid(self, period):
-        p_paid = self.table.loc[period, 'claims_period_paid']
+        p_paid = self.table.loc[period - 1, 'claims_period_paid']
 
         return p_paid
+
+
+class ICDGroupData:
+    def __init__(self, dataframe):
+        self.icd_table = None
+        self.row_list = None
+        self.table = dataframe
+
+        self.group_table = self.table.groupby('icd_name', as_index=False).agg(Claims=('charge_allowed', 'count'),
+                                                                              Charges=('charge_allowed', 'sum'),
+                                                                              Average=('charge_allowed', 'mean'),
+                                                                              Max=('charge_allowed', 'max')
+                                                                              )
+        self.group_pivot = self.table.pivot_table(index='icd_name',
+                                                  columns='period',
+                                                  values='charge_allowed',
+                                                  aggfunc='count',
+                                                  fill_value=0
+                                                  )
+        self.joined_table_pivot = self.group_table.merge(self.group_pivot, how='left', left_on=['icd_name'],
+                                                         right_index=True)
+
+    def create_group_claims_list(self):
+        self.row_list = []
+
+        for i in self.group_pivot.index:
+            row = self.group_pivot.loc[i, :].to_list()
+            self.row_list.append(row)
+
+        return self.row_list
+
+    def join_claims_list_joined_table(self):
+        self.joined_table_pivot['icd_chart_data'] = self.create_group_claims_list()
+
+        return self.joined_table_pivot
+
+    def build_icd_table(self):
+        self.icd_table = self.join_claims_list_joined_table()
+        self.icd_table = self.icd_table.loc[:, ['icd_name', 'Claims', 'Charges', 'Average', 'Max', 'icd_chart_data']]
+
+        return self.icd_table
+
+
+class SpecialtyGroupData:
+    def __init__(self, dataframe):
+        self.row_list = None
+        self.specialty_table = None
+        self.table = dataframe
+
+        self.group_table = self.table.groupby('specialty_name', as_index=False).agg(Claims=('charge_allowed', 'count'),
+                                                                                    Charges=('charge_allowed', 'sum'),
+                                                                                    Average=('charge_allowed', 'mean'),
+                                                                                    Max=('charge_allowed', 'max')
+                                                                                    )
+        self.group_pivot = self.table.pivot_table(index='specialty_name',
+                                                  columns='period',
+                                                  values='charge_allowed',
+                                                  aggfunc='count',
+                                                  fill_value=0
+                                                  )
+        self.joined_table_pivot = self.group_table.merge(self.group_pivot, how='left', left_on=['specialty_name'],
+                                                         right_index=True)
+
+    def create_group_claims_list(self):
+        self.row_list = []
+
+        for i in self.group_pivot.index:
+            row = self.group_pivot.loc[i, :].to_list()
+            self.row_list.append(row)
+
+        return self.row_list
+
+    def join_claims_list_joined_table(self):
+        self.joined_table_pivot['specialty_chart_data'] = self.create_group_claims_list()
+
+        return self.joined_table_pivot
+
+    def build_specialty_table(self):
+        self.specialty_table = self.join_claims_list_joined_table()
+        self.specialty_table = self.specialty_table.loc[:,
+                               ['specialty_name', 'Claims', 'Charges', 'Average', 'Max', 'specialty_chart_data']]
+
+        return self.specialty_table
 
 
 class ICDData:
