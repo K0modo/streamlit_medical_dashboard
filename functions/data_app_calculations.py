@@ -51,7 +51,6 @@ class ICDGroupData:
         self.icd_table = None
         self.row_list = None
         self.table = dataframe
-
         self.group_table = self.table.groupby('icd_name', as_index=False).agg(Claims=('charge_allowed', 'count'),
                                                                               Charges=('charge_allowed', 'sum'),
                                                                               Average=('charge_allowed', 'mean'),
