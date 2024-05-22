@@ -26,37 +26,36 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-conn = st.connection('db_tynan', type='sql')
+conn = st.connection('test_database', type='sql')
 
 
-@st.cache_data
-def fetch_corporate_budget_data():
-    db_query = "Select period, day_count, claims_period_paid from v_period_summary"
-
-    result = conn.query(db_query)
-    df_table = CorporateTables(result)
-    table = df_table.make_period_budget_table()
-    figure = graphs.make_bar_chart_period(table)
-
-    return figure
-
-
-@st.cache_data
-def fetch_corporate_profit_impact_data():
-    db_query = "Select period, day_count, claims_period_paid from v_period_summary"
-    result = conn.query(db_query)
-    df_table = CorporateTables(result)
-    table = df_table.make_charge_impact_table()
-    figure = graphs.make_profit_impact_bar(table)
-
-    return figure
+# @st.cache_data
+# def fetch_corporate_budget_data():
+#     db_query = "Select period, day_count, claims_period_paid from v_period_summary"
+#
+#     result = conn.query(db_query)
+#     df_table = CorporateTables(result)
+#     table = df_table.make_period_budget_table()
+#     figure = graphs.make_bar_chart_period(table)
+#
+#     return figure
+#
+#
+# @st.cache_data
+# def fetch_corporate_profit_impact_data():
+#     db_query = "Select period, day_count, claims_period_paid from v_period_summary"
+#     result = conn.query(db_query)
+#     df_table = CorporateTables(result)
+#     table = df_table.make_charge_impact_table()
+#     figure = graphs.make_profit_impact_bar(table)
+#
+#     return figure
 
 
 @st.cache_data
 def fetch_claim_data():
-    db_query = "Select period, claims_period_count_cum, claims_period_paid_cum, claims_period_count, " \
-                "claims_period_paid " \
-                "from v_period_summary"
+    # db_query = "Select period, claims_period_
+    db_query = "Select * from claim_data"
     result = conn.query(db_query)
 
     return result
@@ -64,7 +63,7 @@ def fetch_claim_data():
 
 @st.cache_data
 def fetch_annual_member_count():
-    db_query = "Select Count(DISTINCT mem_acct_id) from v_consolidated_codes"
+    db_query = "Select Count(DISTINCT mem_acct_id) from group_table"
     result = conn.query(db_query)
 
     return result
@@ -72,7 +71,8 @@ def fetch_annual_member_count():
 
 @st.cache_data
 def fetch_period_member_count():
-    db_query = "Select period, daily_member_sum from v_member_summary"
+    # db_query = "Select period, daily_member_sum from v_member_summary"
+    db_query = "Select * from period_member_count"
     result = conn.query(db_query)
     result = result.set_index('period')
 
@@ -81,7 +81,8 @@ def fetch_period_member_count():
 
 @st.cache_data
 def fetch_icd_racing():
-    db_query = "Select name, period, claim_count_ytd from v_icd_racing"
+    # db_query = "Select name, period, claim_count_ytd from v_icd_racing"
+    db_query = "Select * from icd_racing"
     result = conn.query(db_query)
     table_title = 'Injury_Disease'
     figure = graphs.make_icd_racing_chart(result, table_title)
@@ -91,7 +92,8 @@ def fetch_icd_racing():
 
 @st.cache_data
 def fetch_specialty_racing():
-    db_query = "Select name, period, claim_count_ytd from v_specialty_racing where name != 'Hospital_Clinic'"
+    # db_query = "Select name, period, claim_count_ytd from v_specialty_racing where name != 'Hospital_Clinic'"
+    db_query = "Select * from specialty_racing"
     result = conn.query(db_query)
     table_title = 'Provider Specialty'
     figure = graphs.make_icd_racing_chart(result, table_title)
@@ -100,16 +102,17 @@ def fetch_specialty_racing():
 
 
 @st.cache_data
-def fetch_group_table_data():
-    db_query = """
-            Select period, mem_acct_id, injury_disease_id, t_injury_disease.name as icd_name, specialty_id, 
-            t_specialty.name as specialty_name, 
-                    charge_allowed from v_consolidated_codes as vcc
-            inner join t_injury_disease
-            on vcc.injury_disease_id = t_injury_disease.id
-            left join t_specialty
-            on vcc.specialty_id = t_specialty.id
-            """
+def fetch_group_table():
+    # db_query = """
+    #         Select period, mem_acct_id, injury_disease_id, t_injury_disease.name as icd_name, specialty_id,
+    #         t_specialty.name as specialty_name,
+    #                 charge_allowed from v_consolidated_codes as vcc
+    #         inner join t_injury_disease
+    #         on vcc.injury_disease_id = t_injury_disease.id
+    #         left join t_specialty
+    #         on vcc.specialty_id = t_specialty.id
+    #         """
+    db_query = "Select * from group_table"
     result = conn.query(db_query)
 
     return result
@@ -117,44 +120,58 @@ def fetch_group_table_data():
 
 @st.cache_data
 def fetch_heatmap_data():
-    heatmap_data = fetch_group_table_data()
+    heatmap_data = fetch_group_table()
     heatmap_data = heatmap_data[heatmap_data['specialty_id'] != 209]
     figure = graphs.make_icd_spec_heatmap(heatmap_data)
 
     return figure
 
 
-### Title Row
 
-st.markdown("<h2 style='text-align: center;'>Tynan Analytics Dashboard</h2>", unsafe_allow_html=True)
+col = st.columns((1,3,1))
+with col[1]:
+    st.markdown("<header style='text-align: center; font-family:verdana; font-size:26px; color:gray; "
+                "border:1px solid gray; border-top-left-radius:35px; border-top-right-radius:35px; "
+                "background-color:#F7F00C'>James C. "
+                "Mattingly</header>",
+                unsafe_allow_html=True)
+
+col = st.columns((1,3,1))
+with col[1]:
+    st.markdown("<header style='text-align: center; font-family:verdana; font-size:26px; color:gray; "
+                "border:1px solid gray; border-bottom-left-radius:35px; border-bottom-right-radius:35px;"
+                "background-color:#F7F00C'>Tynan Analytics Dashboard</header>",
+                unsafe_allow_html=True)
+
+st.markdown("")
+st.markdown("")
+
 
 
 ### SUMMARY OF CHARGES CHART & TABLE
 
-st.markdown("")
-st.markdown("<h3 style='text-align: center;'>Annual Budget Variance Summary</h3>", unsafe_allow_html=True)
-st.markdown("")
-
-col = st.columns((4, 1, 3, .5))
-
-with col[0]:
-    variance_chart = fetch_corporate_budget_data()
-    st.plotly_chart(variance_chart, use_container_width=True)
-
-with col[2]:
-    st.markdown(" ")
-    st.markdown(" ")
-    profit_impact_chart = fetch_corporate_profit_impact_data()
-    st.plotly_chart(profit_impact_chart, use_container_width=True)
-
-st.markdown("")
+# st.markdown("")
+# st.markdown("<h3 style='text-align: center;'>Annual Budget Variance Summary</h3>", unsafe_allow_html=True)
+# st.markdown("")
+#
+# col = st.columns((4, 1, 3, .5))
+#
+# with col[0]:
+#     variance_chart = fetch_corporate_budget_data()
+#     st.plotly_chart(variance_chart, use_container_width=True)
+#
+# with col[2]:
+#     st.markdown(" ")
+#     st.markdown(" ")
+#     profit_impact_chart = fetch_corporate_profit_impact_data()
+#     st.plotly_chart(profit_impact_chart, use_container_width=True)
+#
+# st.markdown("")
 
 ###  Statistics Rows
 
-col = st.columns((1, 1, 1))
-
-with col[1]:
-    st.subheader("Summary of Claims")
+st.markdown("<h2 style='text-align: center'>Summary of Healthcare Insurance Claims</h2>", unsafe_allow_html=True)
+st.markdown("")
 
 col = st.columns(8)
 
@@ -168,9 +185,10 @@ with col[0]:
     annual_data = ClaimData(annual_stats, ds.CURRENT_PERIOD)
 
     st.markdown("Metric:")
-    st.markdown("Annual:")
-    st.markdown("Current:")
-    st.markdown(f'Period: {select_period}')
+    st.markdown("YTD:")
+    st.markdown("")
+    st.markdown("Current Period:")
+    st.markdown(f'Select Period: {select_period}')
     st.markdown("Difference")
 
 with col[1]:
@@ -179,6 +197,7 @@ with col[1]:
 
     st.markdown("Claims Processed")
     st.markdown(f'{annual_data.a_claims:,}')
+    st.markdown("")
     st.markdown(f'{annual_data.c_claims:,}')
     st.markdown(f'{p_claims:,}')
     st.plotly_chart(fig, use_container_width=False)
@@ -189,6 +208,7 @@ with col[2]:
 
     st.markdown("Claim Charges")
     st.markdown(f'$ {annual_data.a_paid:,.0f}')
+    st.markdown("")
     st.markdown(f'$ {annual_data.c_paid:,.0f}')
     st.markdown(f'$ {p_paid:,.0f}')
     st.plotly_chart(fig, use_container_width=False)
@@ -199,6 +219,7 @@ with col[3]:
 
     st.markdown("Average Charges")
     st.markdown(f'$ {annual_data.a_ave_per_claim:,.2f}')
+    st.markdown("")
     st.markdown(f'$ {annual_data.c_ave_per_claim:,.2f}')
     st.markdown(f'$ {p_average:,.2f}')
     st.plotly_chart(fig, use_container_width=False)
@@ -212,6 +233,7 @@ with col[4]:
 
     st.markdown("Members")
     st.markdown(f'{a_members.iloc[0, 0]:,}')
+    st.markdown("")
     st.markdown(f'{c_member}')
     st.markdown(f'{p_member}')
     st.plotly_chart(fig, use_container_width=False)
@@ -237,11 +259,11 @@ st.markdown("")
 
 ### ICD Table
 
-with st.expander("ICD TABLE (Sort Columns)"):
+with st.expander("INJURY/DISEASE TABLE (Sort Columns)"):
     col = st.columns([2, 7, 1])
 
     with col[1]:
-        main_query = fetch_group_table_data()
+        main_query = fetch_group_table()
 
         query_group = ICDGroupData(main_query)
 
@@ -295,7 +317,7 @@ with st.expander("HEATMAP"):
 
 st.markdown("")
 
-with st.expander("ICD SELECTION"):
+with st.expander("INJURY/DISEASE SELECTION"):
 
     icd_options = main_query['icd_name'].drop_duplicates().sort_values()
 
