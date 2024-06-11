@@ -100,19 +100,19 @@ def fetch_heatmap_data():
 
 col = st.columns((1,3,1))
 with col[1]:
-    st.markdown("<header style='text-align: center; font-family:verdana; font-size:26px; color:gray; "
-                "border:1px solid gray; border-top-left-radius:35px; border-top-right-radius:35px; "
-                "background-color:#F7F00C'>James C. "
+    st.markdown("<header style='text-align: center; font-family:verdana; font-size:26px; color:white; "
+                "border:2px solid gray; border-top-left-radius:35px; border-top-right-radius:35px; "
+                "background-color:#007bc0'>James C. "
                 "Mattingly</header>",
                 unsafe_allow_html=True)
 
 col = st.columns((1,3,1))
 with col[1]:
-    st.markdown("<header style='text-align: center; font-family:verdana; font-size:26px; color:gray; "
-                "border:1px solid gray; border-bottom-left-radius:35px; border-bottom-right-radius:35px;"
-                "background-color:#F7F00C'>Tynan Analytics Dashboard</header>",
+    st.markdown("<header style='text-align: center; font-family:verdana; font-size:26px; color:white; "
+                "border:2px solid gray; border-bottom-left-radius:35px; border-bottom-right-radius:35px;"
+                "background-color:#007bc0'>Tynan Analytics Dashboard</header>",
                 unsafe_allow_html=True)
-
+#F7F00C Yellow  #007bc0 Blue
 st.markdown("")
 st.markdown("")
 st.markdown("<h2 style='text-align: center'>Summary of Healthcare Insurance Claims</h2>", unsafe_allow_html=True)
